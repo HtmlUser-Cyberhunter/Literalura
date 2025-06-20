@@ -16,4 +16,15 @@ Se ha configurado una política de CORS para permitir peticiones desde orígenes
 - Transaccionalidad y manejo de errores:
 La aplicación está configurada para manejar de forma correcta las transacciones y evitar problemas al acceder a datos LOB, entre otras configuraciones importantes en application.properties.
 
+## Se añade Front End como ejercicio para conectar el Front End y Back End
+## Características
+- Desarrollado utilizando HTML, CSS y JavaScript
+- Interfaz Dinámica y Amigable:
+La aplicación cuenta con un menú principal interactivo que permite al usuario:
+- Buscar libros por título (realizando un filtrado local sobre los datos obtenidos).
+- Listar todos los libros registrados.
+- Listar todos los autores registrados.
+- Filtrar autores vivos en un año específico.
+- Consultar libros por idioma.
+
 ![Static Badge](https://img.shields.io/badge/STATUS-Finalizado-green)        ![GitHub User's stars](https://img.shields.io/github/stars/HtmlUser-Cyberhunter)
