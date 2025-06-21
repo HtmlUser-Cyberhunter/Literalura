@@ -38,4 +38,17 @@ public class AutorService {
     public List<AutorDTO> obtenerTodos() {
         return convierteDatos(autorRepo.findAll());
     }
+
+    public List<AutorDTO> filtrarAutores(Integer anioNacimiento, Integer anioFallecimiento) {
+        List<DatosAutor> filtrados = autorRepo.findAll().stream()
+                .filter(a -> {
+                    boolean cumpleNacimiento = (anioNacimiento == null) ||
+                            (a.getAnioNacimiento() != null && a.getAnioNacimiento().equals(anioNacimiento));
+                    boolean cumpleFallecimiento = (anioFallecimiento == null) ||
+                            (a.getAnioFallecimiento() != null && a.getAnioFallecimiento().equals(anioFallecimiento));
+                    return cumpleNacimiento && cumpleFallecimiento;
+                })
+                .collect(Collectors.toList());
+        return convierteDatos(filtrados);
+    }
 }

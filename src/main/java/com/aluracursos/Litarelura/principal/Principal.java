@@ -1,4 +1,4 @@
-package com.aluracursos.Litarelura.principal;
+package com.aluracursos.Litarelura.Principal;
 
 import com.aluracursos.Litarelura.dto.AutorDTO;
 import com.aluracursos.Litarelura.dto.LibroDTO;
@@ -8,14 +8,16 @@ import com.aluracursos.Litarelura.service.LibroService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.util.Comparator;
 
 @Component
 public class Principal {
 
     private final Scanner scanner = new Scanner(System.in);
-
     private final LibroService libroService;
     private final AutorService autorService;
 
@@ -43,6 +45,10 @@ public class Principal {
                 case 3 -> listarAutoresRegistrados();
                 case 4 -> listarAutoresVivosEnAnio();
                 case 5 -> listarLibrosPorIdioma();
+                case 6 -> generarEstadisticas();
+                case 7 -> top10Libros();
+                case 8 -> buscarAutorPorNombre();
+                case 9 -> filtrarAutores();
                 case 0 -> System.out.println("Saliendo del programa...");
                 default -> System.out.println("Opción no válida. Intente nuevamente.");
             }
@@ -59,6 +65,10 @@ public class Principal {
         System.out.println("║  3. 👩‍🏫 Listar autores registrados           ║");
         System.out.println("║  4. 🧓 Autores vivos en un año              ║");
         System.out.println("║  5. 🌐 Libros por idioma (es, en, fr, pt)   ║");
+        System.out.println("║  6. 📊 Estadísticas de descargas            ║");
+        System.out.println("║  7. 📈 Top 10 libros más descargados        ║");
+        System.out.println("║  8. 🔎 Buscar autor por nombre              ║");
+        System.out.println("║  9. 📝 Filtrar autores por año              ║");
         System.out.println("║  0. 🚪 Salir                                ║");
         System.out.println("╚═════════════════════════════════════════════╝");
     }
@@ -96,10 +106,11 @@ public class Principal {
             System.out.println("No hay autores registrados.");
         } else {
             autores.forEach(autor ->
-                    System.out.printf("Nombre: %s | Nacimiento: %d | Fallecimiento: %s%n",
+                    System.out.printf("Nombre: %s | Nacimiento: %s | Fallecimiento: %s%n",
                             autor.nombre(),
-                            autor.aniooNacimiento() != null ? autor.aniooNacimiento() : 0,
-                            autor.anioFallecimiento() != null ? autor.anioFallecimiento() : "Vivo"));
+                            autor.anioNacimiento() != null ? autor.anioNacimiento() : "Desconocido",
+                            autor.anioFallecimiento() != null ? autor.anioFallecimiento() : "Vivo")
+            );
         }
     }
 
@@ -111,10 +122,11 @@ public class Principal {
             System.out.println("No se encontraron autores vivos en ese año.");
         } else {
             vivos.forEach(autor ->
-                    System.out.printf("Nombre: %s | Nacimiento: %d | Fallecimiento: %s%n",
+                    System.out.printf("Nombre: %s | Nacimiento: %s | Fallecimiento: %s%n",
                             autor.nombre(),
-                            autor.aniooNacimiento() != null ? autor.aniooNacimiento() : 0,
-                            autor.anioFallecimiento() != null ? autor.anioFallecimiento() : "Vivo"));
+                            autor.anioNacimiento() != null ? autor.anioNacimiento() : "Desconocido",
+                            autor.anioFallecimiento() != null ? autor.anioFallecimiento() : "Vivo")
+            );
         }
     }
 
@@ -129,6 +141,105 @@ public class Principal {
                     System.out.printf("Título: %s | Autor: %s%n",
                             libro.titulo(),
                             libro.autor() != null ? libro.autor() : "Desconocido")
+            );
+        }
+    }
+
+    // Función 6. Generar estadísticas de descargas con DoubleSummaryStatistics.
+    private void generarEstadisticas() {
+        List<LibroDTO> libros = libroService.obtenerTodos();
+        DoubleSummaryStatistics stats = libros.stream()
+                .mapToDouble(libro -> libro.descargas() != null ? libro.descargas() : 0)
+                .summaryStatistics();
+        System.out.println("Estadísticas de descargas:");
+        System.out.println("Cantidad: " + stats.getCount());
+        System.out.println("Mínimo: " + stats.getMin());
+        System.out.println("Máximo: " + stats.getMax());
+        System.out.println("Suma: " + stats.getSum());
+        System.out.println("Promedio: " + stats.getAverage());
+    }
+
+    // Función 7. Top 10 libros más descargados.
+    private void top10Libros() {
+        libroService.actualizarLibrosDesdeAPI();
+
+        List<LibroDTO> libros = libroService.obtenerTodos().stream()
+                .sorted(Comparator.comparing(
+                        libro -> libro.descargas() != null ? libro.descargas() : 0,
+                        Comparator.reverseOrder()))
+                .limit(10)
+                .collect(Collectors.toList());
+
+        if (libros.isEmpty()) {
+            System.out.println("No hay libros registrados.");
+        } else {
+            System.out.println("Top 10 libros más descargados:");
+            libros.forEach(libro ->
+                    System.out.printf("Título: %s | Descargas: %d%n",
+                            libro.titulo(),
+                            libro.descargas() != null ? libro.descargas() : 0)
+            );
+        }
+    }
+
+    // Función 8. Buscar autor por nombre.
+    private void buscarAutorPorNombre() {
+        System.out.print("Ingrese el nombre del autor a buscar: ");
+        String nombre = scanner.nextLine();
+        List<AutorDTO> autores = autorService.obtenerTodos().stream()
+                .filter(autor -> autor.nombre().toLowerCase().contains(nombre.toLowerCase()))
+                .collect(Collectors.toList());
+        if (autores.isEmpty()) {
+            System.out.println("No se encontraron autores que coincidan.");
+        } else {
+            autores.forEach(autor ->
+                    System.out.printf("Nombre: %s | Nacimiento: %s | Fallecimiento: %s%n",
+                            autor.nombre(),
+                            autor.anioNacimiento() != null ? autor.anioNacimiento() : "Desconocido",
+                            autor.anioFallecimiento() != null ? autor.anioFallecimiento() : "Vivo")
+            );
+        }
+    }
+
+    // Función 9. Filtrar autores por año de nacimiento y/o fallecimiento.
+    private void filtrarAutores() {
+        // Solicitar el rango de fechas
+        System.out.print("Ingrese el año de inicio: ");
+        String inputInicio = scanner.nextLine();
+        Integer anioInicio = inputInicio.isEmpty() ? null : Integer.parseInt(inputInicio);
+
+        System.out.print("Ingrese el año final: ");
+        String inputFin = scanner.nextLine();
+        Integer anioFin = inputFin.isEmpty() ? null : Integer.parseInt(inputFin);
+
+        if (anioInicio == null || anioFin == null) {
+            System.out.println("Debe ingresar ambos límites del rango");
+            return;
+        }
+        if (anioInicio > anioFin) {
+            System.out.println("El año de inicio debe ser menor o igual que el año final.");
+            return;
+        }
+
+            List<AutorDTO> autores = this.autorService.obtenerTodos().stream()
+                    .filter(autor -> {
+                        Integer nacimiento = autor.anioNacimiento();
+                        if (nacimiento == null) return false;
+                        // Si no tiene año de fallecimiento, se considera que sigue vivo.
+                        Integer fallecimiento = autor.anioFallecimiento() != null ? autor.anioFallecimiento() : Integer.MAX_VALUE;
+
+                        return nacimiento <= anioFin && fallecimiento >= anioInicio;
+                    })
+                    .collect(Collectors.toList());
+        if (autores.isEmpty()) {
+            System.out.println("No se encontraron autores que estuvieran vivos entre esos años");
+        } else {
+            System.out.println("Autores que estuvieron vivos entre " + anioInicio + " y " + anioFin + ":");
+            autores.forEach(autor ->
+                    System.out.printf("Nombre: %s | Nacimiento: %s | Fallecimiento: %s%n",
+                            autor.nombre(),
+                            autor.anioNacimiento() != null ? autor.anioNacimiento() : "Desconocido",
+                            autor.anioFallecimiento() != null ? autor.anioFallecimiento() : "Vivo")
             );
         }
     }

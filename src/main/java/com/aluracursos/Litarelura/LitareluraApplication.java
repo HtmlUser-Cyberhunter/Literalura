@@ -1,7 +1,5 @@
 package com.aluracursos.Litarelura;
 
-
-import com.aluracursos.Litarelura.principal.Principal;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,7 +12,7 @@ public class LitareluraApplication {
 		SpringApplication.run(LitareluraApplication.class, args);
 	}
 	@Bean
-	public CommandLineRunner ejecutar(Principal principal) {
+	public CommandLineRunner ejecutar(com.aluracursos.Litarelura.Principal.Principal principal) {
 		return args -> principal.muestraElMenu();
 	}
 }

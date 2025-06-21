@@ -2,8 +2,6 @@ package com.aluracursos.Litarelura.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -21,8 +19,13 @@ public class DatosLibros {
     @Transient
     @JsonProperty("authors") private List<DatosAutor> authors;
 
-    @Transient
-    @JsonProperty("languages") private List<String> listaIdiomas;
+
+    @JsonProperty("languages")
+    @Column(name = "lista_idiomas") private List<String> listaIdiomas;
+
+
+    @JsonProperty("download_count")
+    @Column(name = "descargas") private Long descargas;
 
     @Transient
     @JsonProperty("summaries") private List<String> summaries;
@@ -50,6 +53,8 @@ public class DatosLibros {
         this.idioma = idioma;
         this.autores = autores;
     }
+
+    // Getters y setters
 
     public Long getId() {
         return id;
@@ -121,5 +126,13 @@ public class DatosLibros {
 
     public void setAuthors(List<DatosAutor> authors) {
         this.authors = authors;
+    }
+
+    public Long getDescargas() {
+        return descargas;
+    }
+
+    public void setDescargas(Long descargas) {
+        this.descargas = descargas;
     }
 }

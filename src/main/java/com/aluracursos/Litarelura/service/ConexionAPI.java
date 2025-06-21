@@ -10,6 +10,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -45,6 +47,21 @@ public class ConexionAPI {
         } catch (Exception e) {
             e.printStackTrace();
             return Optional.empty();
+        }
+    }
+
+    public List<DatosLibros> obtenerLibrosDeLaAPI() {
+        String url = "https://gutendex.com/books/";
+        String json = obtenerDatos(url);
+        try {
+            ResultadoAPI resultado = objectMapper.readValue(json, ResultadoAPI.class);
+            if (resultado.getResults() != null && !resultado.getResults().isEmpty()) {
+                return resultado.getResults();
+            } else {
+                return Collections.emptyList();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error al convertir la respuesta de la API", e);
         }
     }
 }

@@ -5,5 +5,6 @@ public record LibroDTO(Long id,
                        String autor,
                        String idioma,
                        String resumen,
-                       String imagen) {
+                       String imagen,
+                       Integer descargas) {
 }

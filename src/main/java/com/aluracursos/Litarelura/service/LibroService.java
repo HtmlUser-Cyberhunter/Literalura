@@ -4,11 +4,10 @@ import com.aluracursos.Litarelura.dto.LibroDTO;
 import com.aluracursos.Litarelura.model.DatosAutor;
 import com.aluracursos.Litarelura.model.DatosLibros;
 import com.aluracursos.Litarelura.repository.LibroRepository;
+import com.aluracursos.Litarelura.repository.AutorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.aluracursos.Litarelura.repository.AutorRepository;
-
 
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +45,7 @@ public class LibroService {
                 libro.setIdioma("desconocido");
             }
 
+            // Configurar autores a partir de los datos de la API
             if ((libro.getAutores() == null || libro.getAutores().isEmpty())
                     && libro.getAuthors() != null && !libro.getAuthors().isEmpty()) {
                 libro.setAutores(libro.getAuthors());
@@ -82,14 +82,15 @@ public class LibroService {
                 .map(libro -> new LibroDTO(
                         libro.getId(),
                         libro.getTitulo(),
-                        libro.getAutores() != null && !libro.getAutores().isEmpty()
-                                ? libro.getAutores().stream()
-                                .map(autor -> autor.getNombre())
-                                .collect(Collectors.joining(", "))
+                        libro.getAutores() != null ?
+                                libro.getAutores().stream()
+                                        .map(autor -> autor.getNombre())
+                                        .collect(Collectors.joining(", "))
                                 : "Desconocido",
                         libro.getIdioma(),
-                        "", // resumen (puedes agregar si lo tienes)
-                        ""  // imagen (puedes agregar si lo tienes)
+                        libro.getResumen(),
+                        "",  // Valor por defecto para 'imagen'
+                        libro.getDescargas() != null ? libro.getDescargas().intValue() : 0
                 ))
                 .collect(Collectors.toList());
     }
@@ -101,15 +102,57 @@ public class LibroService {
                 .map(libro -> new LibroDTO(
                         libro.getId(),
                         libro.getTitulo(),
-                        libro.getAutores() != null && !libro.getAutores().isEmpty()
-                                ? libro.getAutores().stream()
-                                .map(DatosAutor::getNombre)
-                                .collect(Collectors.joining(", "))
+                        libro.getAutores() != null ?
+                                libro.getAutores().stream()
+                                        .map(autor -> autor.getNombre())
+                                        .collect(Collectors.joining(", "))
                                 : "Desconocido",
                         libro.getIdioma(),
-                        "",
-                        ""
+                        libro.getResumen(),
+                        "",  // Valor por defecto para 'imagen'
+                        libro.getDescargas() != null ? libro.getDescargas().intValue() : 0
                 ))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void actualizarLibrosDesdeAPI() {
+
+        List<DatosLibros> librosDesdeAPI = conexionAPI.obtenerLibrosDeLaAPI();
+        if (librosDesdeAPI != null) {
+            for (DatosLibros libro : librosDesdeAPI) {
+                // Si el libro (según su id) no existe, se guarda.
+                Optional<DatosLibros> libroExistente = libroRepository.findById(libro.getId());
+                if (libroExistente.isEmpty()) {
+                    if (libro.getListaIdiomas() != null && !libro.getListaIdiomas().isEmpty()) {
+                        String idiomasConcatenados = String.join(",", libro.getListaIdiomas());
+                        libro.setIdioma(idiomasConcatenados);
+                    } else {
+                        libro.setIdioma("desconocido");
+                    }
+                    // Configurar autores usando los datos de la API
+                    if ((libro.getAutores() == null || libro.getAutores().isEmpty())
+                            && libro.getAuthors() != null && !libro.getAuthors().isEmpty()) {
+                        libro.setAutores(libro.getAuthors());
+                    }
+                    if (libro.getAutores() != null && !libro.getAutores().isEmpty()) {
+                        List<DatosAutor> autoresActualizados = libro.getAutores().stream()
+                                .map(autor -> {
+                                    Optional<DatosAutor> autorExistente = repositorioAutor.findByNombre(autor.getNombre());
+                                    if (autorExistente.isPresent()) {
+                                        return autorExistente.get();
+                                    } else {
+                                        return repositorioAutor.save(autor);
+                                    }
+                                })
+                                .collect(Collectors.toList());
+                        libro.setAutores(autoresActualizados);
+                        autoresActualizados.forEach(autor -> autor.getLibros().add(libro));
+                    }
+                    libroRepository.save(libro);
+                }
+            }
+        }
+        System.out.println("Actualización desde la API completada.");
     }
 }
