@@ -49,4 +49,4 @@ Este proyecto te permite explorar y analizar datos literarios actualizados, inte
 
 
 
-![Static Badge](https://img.shields.io/badge/STATUS-Finalizado-green)        ![GitHub User's stars](https://img.shields.io/github/stars/HtmlUser-Cyberhunter)
+![Static Badge](https://img.shields.io/badge/STATUS-En%20desarrollo-blue)       ![GitHub User's stars](https://img.shields.io/github/stars/HtmlUser-Cyberhunter)
